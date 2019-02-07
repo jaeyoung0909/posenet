@@ -2,7 +2,7 @@ import urllib.request as urllib
 import json 
 from struct import unpack
 
-url = 'https://storage.googleapis.com/tfjs-models/weights/posenet/mobilenet_v1_101/'
+url = 'https://storage.googleapis.com/tfjs-models/weights/posenet/mobilenet_v1_100/'
 
 def jsonLoader(url = url):
     manifestURL = url+'manifest.json'
@@ -28,10 +28,22 @@ def binaryReader(filePath = 'model/'):
         data.append(unpack('f', f[i:i+4])[0])
     return data
 
-def getAllVariables(url = url, filePath = 'model/'):
+def getAllVariablesAndShapes(url = url, filePath = 'model/'):
     jsonData = jsonLoader(url)
-    variables = {}
+    ret = {}
     for key, value in jsonData.items():
-        variables[key] = binaryReader(filePath + value['filename'])
-    return variables 
+        temp = {}
+        temp['variable'] = binaryReader(filePath + value['filename'])
+        temp['shape'] = tuple(value['shape'])
+        ret[key] = temp
+    return ret
 
+def getAllShapes(url=url):
+    jsonData = jsonLoader(url)
+    shapes = {}
+    for key, value in jsonData.items():
+        shapes[key] = value['shape']
+    return shapes
+
+a = getAllVariablesAndShapes()['MobilenetV1/Conv2d_0/weights']
+print(len(a['variable']))
