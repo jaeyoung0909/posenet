@@ -26,12 +26,15 @@ ConvolutionDefinition = [
 
 rate = 1
 currentStride = 1
+blockId = 0
 def toOutputStridedLayers(convolutionDefinition, outputStride):
     global currentStride
     currentStride = 1
     global rate 
     rate = 1
-    def f(convMeta, blockId):
+    global blockId 
+    blockId = 0 
+    def f(convMeta):
         if len(convMeta) is not 2:
             raise RuntimeError('convMeta is invalid')
         convType = convMeta[0]
@@ -40,6 +43,9 @@ def toOutputStridedLayers(convolutionDefinition, outputStride):
         layerRate = None
         global rate 
         global currentStride 
+        global blockId
+        tempId = blockId 
+        blockId += 1
 
         if currentStride == outputStride:
             layerStride = 1
@@ -50,7 +56,7 @@ def toOutputStridedLayers(convolutionDefinition, outputStride):
             layerRate = 1 
             currentStride *= stride 
         
-        return {'blockId' : blockId, 'convType' : convType, 'stride':layerStride,  'rate' : layerRate, 'outputStride':outputStride}
+        return {'blockId' : tempId, 'convType' : convType, 'stride':layerStride,  'rate' : layerRate, 'outputStride':outputStride}
     return list(map(f, convolutionDefinition))
 
 
@@ -71,7 +77,7 @@ class Mobile():
             blockId = layerDict['blockId']
             convType = layerDict['convType']
             stride = layerDict['stride']
-            rate = layerDict['layer']
+            rate = layerDict['rate']
 
             if convType == 'conv2d':
                 return self.conv(previousLayer, stride, blockId)
@@ -79,30 +85,30 @@ class Mobile():
                 return self.separableConv(previousLayer, stride, blockId, rate)
             else:
                 raise RuntimeError('Unknown conv type of {}'.format(convType))
-        layers = layers.insert(0, preprocessedInput)
+        layers.insert(0, preprocessedInput)
         return reduce(reducer, layers)
 
 
     def convToOutput(self, mobileNetOutput, outputLayerName):
-        return mobileNetOutput.conv2d(self.weights(outputLayerName), 1, 'same').add(self.convBias(outputLayerName))
+        tensor = tf.nn.conv2d(mobileNetOutput, self.weights(outputLayerName), [1], 'SAME')
+        tensor = tf.nn.bias_add(tensor, self.convBias(outputLayerName))
+        return tensor
     
     def conv(self, inputs, stride, blockId):
-        weights = self.weights('conv2d_{}'.format(blockId))
-        a = inputs.conv2d(weights, stride, 'same')
-        b = tf.add(a, self.convBias('conv2d_{}'.format(blockId)))
+        weights = self.weights('Conv2d_{}'.format(blockId))
+        a = tf.nn.conv2d(inputs, weights, [stride], 'SAME')
+        b = tf.nn.bias_add(a, self.convBias('Conv2d_{}'.format(blockId)))
         return tf.clip_by_value(b, 0, 6)
 
     def separableConv(self, inputs, stride, blockId, dilations = 1):
         dwLayer = 'Conv2d_{}_depthwise'.format(blockId)
         pwLayer = 'Conv2d_{}_pointwise'.format(blockId)
-        x1 = inputs.depthwiseConv2D(
-                self.depthwiseWeights(dwLayer), stride, 'same', 'NHWC',
-                dilations
-            ).add(self.depthwiseBias(dwLayer)
-            ).clip_by_value(0, 6)
-        x2 = x1.conv2d(self.weights(pwLayer), [1,1], 'same'
-            ).add(self.convBias(pwLayer)
-            ).clip_by_value(0, 6)
+        x1 = tf.nn.depthwise_conv2d(inputs, self.depthwiseWeights(dwLayer), [stride],'SAME','NHWC', dilations)
+        x1 = tf.nn.bias_add(x1, self.depthwiseBias(dwLayer))
+        x1 = tf.clip_by_value(x1, 0, 6)
+        x2 = tf.nn.conv2d(x1, self.weights(pwLayer), [1,1], 'SAME')
+        x2 = tf.nn.bias_add(x2, self.convBias(pwLayer))
+        x2 = tf.clip_by_value(x2, 0, 6)
         return x2
 
     def weights(self, layerName):
@@ -120,7 +126,7 @@ class Mobile():
 
 
 inputImg = Image.open('jeus.jpg')
-inputImg = tf.constant(np.array(inputImg))
+inputImg = tf.constant(np.reshape(np.array(inputImg), (1, -1)))
 
 model = Mobile()
 model.predict(inputImg, 16)
