@@ -45,5 +45,3 @@ def getAllShapes(url=url):
         shapes[key] = value['shape']
     return shapes
 
-a = getAllVariablesAndShapes()['MobilenetV1/Conv2d_0/weights']
-print(len(a['variable']))

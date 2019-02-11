@@ -1,7 +1,6 @@
 import tensorflow as tf 
 import numpy as np
 from functools import reduce 
-from PIL import Image
 
 from jsonLoader import getAllVariablesAndShapes
 from ModelWeights import ModelWeights 
@@ -90,7 +89,7 @@ class Mobile():
 
 
     def convToOutput(self, mobileNetOutput, outputLayerName):
-        tensor = tf.nn.conv2d(mobileNetOutput, self.weights(outputLayerName), [1], 'SAME')
+        tensor = tf.nn.conv2d(mobileNetOutput, self.weights(outputLayerName), [1,1,1,1], 'SAME')
         tensor = tf.nn.bias_add(tensor, self.convBias(outputLayerName))
         return tensor
     
@@ -125,8 +124,3 @@ class Mobile():
 
 
 
-inputImg = Image.open('jeus.jpg')
-inputImg = tf.constant(np.reshape(np.array(inputImg), (1, 578,466,3)))
-model = Mobile()
-ret = model.predict(inputImg, 16)
-print(ret)
