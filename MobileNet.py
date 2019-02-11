@@ -96,17 +96,17 @@ class Mobile():
     
     def conv(self, inputs, stride, blockId):
         weights = self.weights('Conv2d_{}'.format(blockId))
-        a = tf.nn.conv2d(inputs, weights, [stride], 'SAME')
+        a = tf.nn.conv2d(inputs, weights, [1, stride, stride, 1], 'SAME')
         b = tf.nn.bias_add(a, self.convBias('Conv2d_{}'.format(blockId)))
         return tf.clip_by_value(b, 0, 6)
 
     def separableConv(self, inputs, stride, blockId, dilations = 1):
         dwLayer = 'Conv2d_{}_depthwise'.format(blockId)
         pwLayer = 'Conv2d_{}_pointwise'.format(blockId)
-        x1 = tf.nn.depthwise_conv2d(inputs, self.depthwiseWeights(dwLayer), [stride],'SAME','NHWC', dilations)
+        x1 = tf.nn.depthwise_conv2d(inputs, self.depthwiseWeights(dwLayer), [1, stride, stride, 1],'SAME')
         x1 = tf.nn.bias_add(x1, self.depthwiseBias(dwLayer))
         x1 = tf.clip_by_value(x1, 0, 6)
-        x2 = tf.nn.conv2d(x1, self.weights(pwLayer), [1,1], 'SAME')
+        x2 = tf.nn.conv2d(x1, self.weights(pwLayer), [1,1,1,1], 'SAME')
         x2 = tf.nn.bias_add(x2, self.convBias(pwLayer))
         x2 = tf.clip_by_value(x2, 0, 6)
         return x2
@@ -126,7 +126,7 @@ class Mobile():
 
 
 inputImg = Image.open('jeus.jpg')
-inputImg = tf.constant(np.reshape(np.array(inputImg), (1, -1)))
-
+inputImg = tf.constant(np.reshape(np.array(inputImg), (1, 578,466,3)))
 model = Mobile()
-model.predict(inputImg, 16)
+ret = model.predict(inputImg, 16)
+print(ret)
