@@ -2,6 +2,8 @@ import tensorflow as tf
 import numpy as np
 from functools import reduce 
 
+from PIL import Image
+
 from jsonLoader import getAllVariablesAndShapes
 from ModelWeights import ModelWeights 
 
@@ -123,4 +125,10 @@ class Mobile():
         return self.modelWeights.depthwiseWeights(layerName)
 
 
+inputImg = Image.open('jeus.jpg')
+inputImg = tf.constant(np.reshape(np.array(inputImg), (1, 578,466,3)))
+net = Mobile()
+
+
+print(tf.Session().run(net.predict(inputImg, 16)))
 

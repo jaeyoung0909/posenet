@@ -45,3 +45,8 @@ def getAllShapes(url=url):
         shapes[key] = value['shape']
     return shapes
 
+
+a = getAllVariablesAndShapes()["MobilenetV1/Conv2d_10_depthwise/biases"]
+print(len(a['variable']))
+print(a['shape'])
+
