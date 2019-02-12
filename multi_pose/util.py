@@ -3,13 +3,16 @@ import tensorflow as tf
 from multi_pose.keypoints import NUM_KEYPOINTS
 
 def getOffsetPoint(y, x, keypoint, offsets):
+    x = int(x)
+    y = int(y)
     return {'y': offsets[y][x][keypoint], 'x': offsets[y][x][keypoint + NUM_KEYPOINTS]}
 
 def getImageCoords(part, outputStride, offsets):
     [heatmapY, heatmapX, id] = part 
     keypoint = id['id']
-    [y, x] = getOffsetPoint(heatmapY, heatmapX, keypoint, offsets)
-    return {'x': part.heatmapX * outputStride + x, 'y': part.heatmapY * outputStride + y}
+    x = getOffsetPoint(heatmapY, heatmapX, keypoint, offsets)['x']
+    y = getOffsetPoint(heatmapY, heatmapX, keypoint, offsets)['y']
+    return {'x': heatmapX * outputStride + x, 'y': heatmapY * outputStride + y}
 
 def fillArray(element, size):
     result = []

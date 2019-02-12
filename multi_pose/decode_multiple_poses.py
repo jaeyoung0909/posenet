@@ -33,8 +33,8 @@ def decodeMultiplePoses(heatmapScores, offsets, displacementsFwd, displacementsB
     while (len(poses) < maxPoseDetections and not queue.empty()):
         root = queue.dequeue()
 
-        rootImageCoords = getImageCoords(root['part'], outputStride, offsets)
-        if withinNmsRadiusOfCorrespondingPoint(poses, squaredNmsRadius, rootImageCoords, root['part']['id']):
+        rootImageCoords = getImageCoords(root[1]['part'], outputStride, offsets)
+        if withinNmsRadiusOfCorrespondingPoint(poses, squaredNmsRadius, rootImageCoords, root[1]['part'][2]['id']):
             continue 
         
         keypoints = decodePose(

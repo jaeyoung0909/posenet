@@ -11,7 +11,7 @@ class MaxHeap():
     
     def enqueue(self, x):
         self.numberOfElements += 1
-        self.priorityQueue[self.numberOfElements] = x 
+        self.priorityQueue.append(x) 
         self.swim(self.numberOfElements)
 
     def dequeue(self):
@@ -19,7 +19,7 @@ class MaxHeap():
         self.exchange(0, self.numberOfElements)
         self.numberOfElements -= 1
         self.sink(0)
-        self.priorityQueue[self.numberOfElements + 1] = None
+        self.priorityQueue.pop()
         return max 
 
 

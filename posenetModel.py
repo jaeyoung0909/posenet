@@ -43,7 +43,7 @@ class PoseNet():
         resizedWidth = getValidResolution(imageScaleFactor, width, outputStride)
         
         inputTensor = toResizedInputTensor(input, resizedHeight, resizedWidth, flipHorizontal)
-        multipleRet = self.predictForMultiPose(inputTensor, outputStride)
+        multipleRet = tf.Session().run(self.predictForMultiPose(inputTensor, outputStride))
         
         heatmapScores = multipleRet['heatmapScores']
         offsets = multipleRet['offsets']

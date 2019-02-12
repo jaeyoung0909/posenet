@@ -6,7 +6,9 @@ from multi_pose.max_heap import MaxHeap
 def scoreIsMaximumInLocalWindow(
     keypointId, score, heatmapY, heatmapX, localMaximumRadius, scores
     ):
-    [height, width] = scores.shape
+    height = scores.shape[0]
+    width = scores.shape[1]
+
     localMaximum = True 
     yStart = max(heatmapY - localMaximumRadius, 0)
     yEnd = min(heatmapY + localMaximumRadius + 1, height)
