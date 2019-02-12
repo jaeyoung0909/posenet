@@ -1,20 +1,20 @@
 import urllib.request as urllib
-import json 
+import json
 from struct import unpack
 
-url = 'https://storage.googleapis.com/tfjs-models/weights/posenet/mobilenet_v1_100/'
+url = 'https://storage.googleapis.com/tfjs-models/weights/posenet/mobilenet_v1_101/'
 
 def jsonLoader(url = url):
     manifestURL = url+'manifest.json'
     jsonData = urllib.urlopen(manifestURL).read()
     return json.loads(jsonData)
 
-def fileLoader(url = url): 
+def fileLoader(url = url):
     manifest = jsonLoader(url)
 
     for value in manifest.values():
-        name = value['filename'] 
-        datumUrl = url + name 
+        name = value['filename']
+        datumUrl = url + name
         urllib.urlretrieve(datumUrl, "./model/{}".format(name))
 
 def binaryReader(filePath = 'model/'):
@@ -25,7 +25,7 @@ def binaryReader(filePath = 'model/'):
     bufferSize = binarySize//4
     data = []
     for i in range(bufferSize):
-        data.append(unpack('f', f[i:i+4])[0])
+        data.append(unpack('f', f[i*4:i*4+4])[0])
     return data
 
 def getAllVariablesAndShapes(url = url, filePath = 'model/'):
@@ -46,7 +46,5 @@ def getAllShapes(url=url):
     return shapes
 
 
-a = getAllVariablesAndShapes()["MobilenetV1/Conv2d_10_depthwise/biases"]
-print(len(a['variable']))
-print(a['shape'])
-
+# a = getAllVariablesAndShapes()["MobilenetV1/segment_2/biases"]
+# print(a['variable'])

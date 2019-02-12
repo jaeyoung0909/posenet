@@ -125,10 +125,5 @@ class Mobile():
         return self.modelWeights.depthwiseWeights(layerName)
 
 
-inputImg = Image.open('jeus.jpg')
-inputImg = tf.constant(np.reshape(np.array(inputImg), (1, 578,466,3)))
-net = Mobile()
 
-
-print(tf.Session().run(net.predict(inputImg, 16)))
 

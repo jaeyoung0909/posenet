@@ -13,7 +13,7 @@ def scoreIsMaximumInLocalWindow(
         xStart = max(heatmapX - localMaximumRadius, 0)
         xEnd = min(heatmapX + localMaximumRadius + 1, width)
         for xCurrent in range(xStart, xEnd):
-            if scores.get(yCurrent, xCurrent, keypointId) > score:
+            if scores[yCurrent][xCurrent][keypointId] > score:
                 localMaximum = False 
                 break 
         if not localMaximum:
@@ -31,7 +31,7 @@ def buildPartWithScoreQueue(
     for heatmapY in range(height):
         for heatmapX in range(width):
             for keypointId in range(numKeypoints):
-                score = scores.get(heatmapY, heatmapX, keypointId)
+                score = scores[heatmapY][heatmapX][keypointId]
                 if score < scoreThreshold:
                     continue 
                 if scoreIsMaximumInLocalWindow(
