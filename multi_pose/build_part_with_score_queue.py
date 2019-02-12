@@ -1,6 +1,7 @@
 import math
+import tensorflow as tf 
 
-from max_heap import MaxHeap
+from multi_pose.max_heap import MaxHeap
 
 def scoreIsMaximumInLocalWindow(
     keypointId, score, heatmapY, heatmapX, localMaximumRadius, scores

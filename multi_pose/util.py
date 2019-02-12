@@ -1,4 +1,6 @@
-from keypoints import NUM_KEYPOINTS
+import tensorflow as tf
+
+from multi_pose.keypoints import NUM_KEYPOINTS
 
 def getOffsetPoint(y, x, keypoint, offsets):
     return {'y': offsets[y][x][keypoint], 'x': offsets[y][x][keypoint + NUM_KEYPOINTS]}
@@ -32,3 +34,9 @@ def addVectors(a, b):
 
 def clampVector(a, min, max):
     return {'y': clamp(a.y, min, max), 'x': clamp(a.x, min, max)}
+
+# def toTensorBuffer(tensor, type):
+    
+
+# def toTensorBuffers3D(tensors):
+#     return list(map(lambda tensor : toTensorBuffer(tensor, 'float32'), tensors))

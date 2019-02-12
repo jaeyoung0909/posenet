@@ -1,9 +1,9 @@
-from util import clamp, getOffsetPoint, addVectors, getImageCoords 
-from keypoints import partIds, partNames, poseChain 
+from multi_pose.util import clamp, getOffsetPoint, addVectors, getImageCoords 
+from multi_pose.keypoints import partIds, partNames, poseChain 
 
 
 
-parentChildrenTuples = list(map(lambda x: [partIds[x[0], partIds[x[1]]]], poseChain))
+parentChildrenTuples = list(map(lambda x: [partIds[x[0]], partIds[x[1]]], poseChain))
 parentToChildEdges = list(map(lambda x: x[1], parentChildrenTuples))
 childToParentEdges = list(map(lambda x: x[0], parentChildrenTuples))
 

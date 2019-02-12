@@ -1,9 +1,8 @@
 import tensorflow as tf 
-import numpy as np 
 
-from build_part_with_score_queue import buildPartWithScoreQueue 
-from decode_pose import decodePose 
-from util import getImageCoords, squaredDistance
+from multi_pose.build_part_with_score_queue import buildPartWithScoreQueue 
+from multi_pose.decode_pose import decodePose 
+from multi_pose.util import getImageCoords, squaredDistance
 
 def withinNmsRadiusOfCorrespondingPoint(poses, squaredNmsRadius, coord, keypointId):
     x = coord['x']
@@ -18,7 +17,7 @@ def getInstanceScore(existingPoses, squaredNmsRadius, instanceKeypoints):
     def instanceReducer(keypointScores):
         ret = 0.0
         for keypointId in range(len(keypointScores)):
-            if not withinNmsRadiusOfCorrespondingPoint(existingPoses, keypointScores[keypointId]['position'], position, keypointId):
+            if not withinNmsRadiusOfCorrespondingPoint(existingPoses, squaredNmsRadius, keypointScores[keypointId]['position'], keypointId):
                 ret += keypointScores[keypointId]['score']
         return ret 
     notOverlappedKeypointScores = instanceReducer(instanceKeypoints)
@@ -28,4 +27,20 @@ def getInstanceScore(existingPoses, squaredNmsRadius, instanceKeypoints):
 def decodeMultiplePoses(heatmapScores, offsets, displacementsFwd, displacementsBwd, outputStride, maxPoseDetections, scoreThreshold = 0.5, nmsRadius = 20):
     kLocalMaximumRadius = 1
     poses = []
-    # [scoresBuffer, offsetsBuffer, displacementsFwdBuffer, displacementsBwdBuffer] = toTensorBuffers3D
+
+    queue = buildPartWithScoreQueue(scoreThreshold, kLocalMaximumRadius, heatmapScores)
+    squaredNmsRadius = nmsRadius * nmsRadius
+    while (len(poses) < maxPoseDetections and not queue.empty()):
+        root = queue.dequeue()
+
+        rootImageCoords = getImageCoords(root['part'], outputStride, offsets)
+        if withinNmsRadiusOfCorrespondingPoint(poses, squaredNmsRadius, rootImageCoords, root['part']['id']):
+            continue 
+        
+        keypoints = decodePose(
+            root, heatmapScores, offsets, outputStride, displacementsFwd, displacementsBwd
+        )
+        score = getInstanceScore(poses, squaredNmsRadius, keypoints)
+        poses.append({'keypoints' : keypoints, 'score' : score})
+
+    return poses
