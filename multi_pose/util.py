@@ -7,9 +7,10 @@ def getOffsetPoint(y, x, keypoint, offsets):
     y = int(y)
     return {'y': offsets[y][x][keypoint], 'x': offsets[y][x][keypoint + NUM_KEYPOINTS]}
 
-def getImageCoords(part, outputStride, offsets):
-    [heatmapY, heatmapX, id] = part 
-    keypoint = id['id']
+def getImageCoords(part, outputStride, offsets): 
+    heatmapY = part['heatmapY']
+    heatmapX = part['heatmapX']
+    keypoint = part['id']
     x = getOffsetPoint(heatmapY, heatmapX, keypoint, offsets)['x']
     y = getOffsetPoint(heatmapY, heatmapX, keypoint, offsets)['y']
     return {'x': heatmapX * outputStride + x, 'y': heatmapY * outputStride + y}

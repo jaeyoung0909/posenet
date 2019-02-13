@@ -29,7 +29,7 @@ def traverseToTargetKeypoint(edgeId, sourceKeypoint, targetKeypointId, scoresBuf
     offsetPoint = getOffsetPoint(displacedPointIndices['y'], displacedPointIndices['x'], targetKeypointId, offsets)
     score = scoresBuffer[int(displacedPointIndices['y'])][int(displacedPointIndices['x'])][targetKeypointId]
     targetKeypoint = addVectors({'x':displacedPointIndices['x'] * outputStride, 'y': displacedPointIndices['y'] * outputStride}, {'x': offsetPoint['x'], 'y': offsetPoint['y']})
-    return [{'position' : targetKeypoint, 'part': partNames[targetKeypointId]}, score]
+    return {'score' : score, 'position' : targetKeypoint, 'part': partNames[targetKeypointId]}
 
 def decodePose(root, scores, offsets, outputStride, displacementsFwd, displacementsBwd):
     global parentToChildEdges
@@ -39,11 +39,11 @@ def decodePose(root, scores, offsets, outputStride, displacementsFwd, displaceme
     numEdges = len(parentToChildEdges)
 
     instanceKeypoints = [0 for i in range(numParts)]
-    rootPart = root[1]['part']
-    rootScore = root[0]
+    rootPart = root['part']
+    rootScore = root['score']
     rootPoint = getImageCoords(rootPart, outputStride, offsets)
 
-    instanceKeypoints[rootPart[2]['id']] = {'score': rootScore, 'part' : partNames[rootPart[2]['id']], 'position': rootPoint}
+    instanceKeypoints[rootPart['id']] = {'score': rootScore, 'part' : partNames[rootPart['id']], 'position': rootPoint}
     
     for edge in range(numEdges - 1, -1, -1):
         sourceKeypointId = parentToChildEdges[edge]

@@ -28,7 +28,7 @@ def buildPartWithScoreQueue(
     ):
     [height, width, numKeypoints] = scores.shape 
     def identity(x):
-        return x
+        return x['score']
     queue = MaxHeap(height * width * numKeypoints, identity)
     
     for heatmapY in range(height):
@@ -40,6 +40,6 @@ def buildPartWithScoreQueue(
                 if scoreIsMaximumInLocalWindow(
                     keypointId, score, heatmapY, heatmapX, localMaximumRadius, scores
                     ):
-                    queue.enqueue([score, {'part':[heatmapY, heatmapX, {'id': keypointId}]}])
+                    queue.enqueue({'score' : score, 'part': {'heatmapY':heatmapY, 'heatmapX' : heatmapX, 'id': keypointId}})
     return queue 
 
