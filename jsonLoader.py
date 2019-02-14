@@ -9,6 +9,11 @@ def jsonLoader(url = url):
     jsonData = urllib.urlopen(manifestURL).read()
     return json.loads(jsonData)
 
+def manifestLoader(filePath = 'manifest.json'):
+    with open(filePath) as f:
+        data = json.load(f)
+    return data
+
 def fileLoader(url = url):
     manifest = jsonLoader(url)
 
@@ -29,7 +34,7 @@ def binaryReader(filePath = 'model/'):
     return data
 
 def getAllVariablesAndShapes(url = url, filePath = 'model/'):
-    jsonData = jsonLoader(url)
+    jsonData = manifestLoader()
     ret = {}
     for key, value in jsonData.items():
         temp = {}
@@ -45,6 +50,3 @@ def getAllShapes(url=url):
         shapes[key] = value['shape']
     return shapes
 
-
-# a = getAllVariablesAndShapes()["MobilenetV1/segment_2/biases"]
-# print(a['variable'])

@@ -3,6 +3,7 @@ import numpy as np
 from sklearn.preprocessing import normalize 
 from skimage.transform import resize
 from PIL import Image
+import csv 
 
 from MobileNet import Mobile
 from util import getInputTensorDimensions, getValidResolution, toResizedInputTensor, scalePoses
@@ -43,7 +44,7 @@ class PoseNet():
         resizedWidth = getValidResolution(imageScaleFactor, width, outputStride)
         
         inputTensor = toResizedInputTensor(input, resizedHeight, resizedWidth, flipHorizontal)
-        multipleRet = tf.Session().run(self.predictForMultiPose(inputTensor, outputStride))
+        [multipleRet, img] = tf.Session().run([self.predictForMultiPose(inputTensor, outputStride), inputTensor])
         
         heatmapScores = multipleRet['heatmapScores']
         offsets = multipleRet['offsets']
@@ -53,8 +54,9 @@ class PoseNet():
         
         scaleY = height / resizedHeight
         scaleX = width / resizedWidth
-
-        return scalePoses(poses, scaleY, scaleY) 
+        print(scaleY)
+        print(scaleX)
+        return [scalePoses(poses, scaleY, scaleX), img.astype(int), heatmapScores]
     
 def argmax(npArray):
     height = npArray.shape[0]
@@ -75,17 +77,96 @@ def argmax(npArray):
     
     return ret
                 
+def drawPose(npImg, output):
+
+    def line(A, B):
+        f = lambda x: (B['y'] - A['y']) / (B['x'] - A['x']) * (x - A['x']) + A['y']
+        ret = []
+        step = -1
+        if A['x'] <= B['x']:
+            step = 1
+        for i in range(int(A['x']), int(B['x']), step):
+            ret.append([i, int(round(f(i)))])
+        return ret
+            
+
+    color = {'heart' : [0, 255, 255], 'mid' : [255, 255, 0] ,'leftEye': [255, 0, 0],'rightEye': [255, 0, 0],'nose': [0, 255, 0],'leftEar': [0, 0, 255],'rightEar': [0, 0, 255],'leftShoulder': [255, 0, 0],'rightShoulder': [255, 0, 0],'leftElbow': [0, 255, 0],'rightElbow': [0, 255, 0],'leftWrist': [0, 0, 255],'rightWrist': [0, 0, 255],'leftHip': [255, 0, 0],'rightHip': [255, 0, 0],'leftKnee': [0, 255, 0],'rightKnee': [0, 255, 0], 'leftAnkle':[0,0,255], 'rightAnkle' : [0,0,255]}
+    path = {'mid': 'heart', 'heart' : 'mid', 'leftEye': 'nose' ,'rightEye': 'nose','nose': 'heart' ,'leftEar': 'leftEye' ,'rightEar': 'rightEye' ,'leftShoulder': 'heart' ,'rightShoulder': 'heart' ,'leftElbow': 'leftShoulder' ,'rightElbow': 'rightShoulder' ,'leftWrist': 'leftElbow' ,'rightWrist': 'rightElbow' ,'leftHip': 'mid' ,'rightHip': 'mid' ,'leftKnee': 'leftHip' ,'rightKnee': 'rightHip' , 'leftAnkle':'leftKnee', 'rightAnkle' : 'rightKnee'}
+    
+    for person in output:
+        position = {}
+        shoulder = []
+        hip = []
+        for keypoint in person['keypoints']:
+            position[keypoint['part']] = {'x' : keypoint['position']['x'], 'y':keypoint['position']['y']}
+
+            if keypoint['part'] is 'leftShoulder' or keypoint['part'] is 'rightShoulder':
+                shoulder.append([keypoint['position']['y'], keypoint['position']['x']])
+                continue 
+            if keypoint['part'] is 'leftHip' or keypoint['part'] is 'rightHip':
+                hip.append([keypoint['position']['y'], keypoint['position']['x']])
+                continue
+
+        position['heart'] = {'x':(shoulder[0][1] + shoulder[1][1]) / 2, 'y':(shoulder[0][0] + shoulder[1][0]) / 2}
+        position['mid'] = {'x':(hip[0][1] + hip[1][1]) / 2, 'y':(hip[0][0] + hip[1][0]) / 2}
+
+        for keypoint in position.keys():
+            startPoint = position[keypoint]
+            endPoint = position[path[keypoint]]
+            for point in line(startPoint, endPoint):
+                if npImg.shape[0] <= point[1] or npImg.shape[1] <= point[0]:
+                    continue
+                npImg[point[1]][point[0]] = [255, 255, 255]
+
+            y = int(round(startPoint['y']))
+            x = int(round(startPoint['x']))
+            if npImg.shape[0] < y or npImg.shape[1] < x:
+                continue
+
+            for i in range(-1, 2, 1):
+                for j in range(-1, 2, 1):
+                    if npImg.shape[0] <= y + j or npImg.shape[1] <= x + i:
+                        continue 
+                    npImg[y + j][x + i] = color[keypoint]
+    return npImg  
 
 
 net = Mobile()
 posenet = PoseNet(net)
 
 inputImg = Image.open('trump.jpeg')
-inputImg = np.array(inputImg)
-inputImg = tf.constant(np.reshape(inputImg, (1,) + inputImg.shape))
+Img = np.array(inputImg)
+inputImg = tf.constant(np.reshape(Img, (1,) + Img.shape))
 
-output = posenet.estimateMultiplePoses(inputImg)
+
+
+[output, img, heatmap] = posenet.estimateMultiplePoses(inputImg)
+print(img.shape)
 print(output)
+heatmap = [
+    {'x': 59.5228271484375, 'y': 46.82022273540497},
+    {'x': 67.39776873588562, 'y': 56.60334300994873},
+    {'x': 35.487648010253906, 'y': 97.75773429870605},
+    {'x': 65.34354972839355, 'y': 41.31705141067505},
+    {'x': 101.55524158477783, 'y': 87.48803615570068},
+    {'x': 78.0368971824646, 'y': 40.01420736312866},
+    {'x': 119.14924335479736, 'y': 129.39313542842865},
+    {'x': 44.64396142959595, 'y': 53.29807949066162}
+    ]
+
+
+for i in heatmap:
+    y = int(i['y'] * 1.4186046511627908)
+    x = int(i['x'] * 2.131782945736434)
+    if Img.shape[0] <= y or Img.shape[1] <= x:
+        continue
+    Img[y][x] = [0, 255, 255]
+img = Image.fromarray(Img)
+# img = Image.fromarray(drawPose(Img, output))
+img.show()
+
+
+
 # output = posenet.predictForMultiPose(inputImg)
 
 # heatmap = output['heatmapScores']
@@ -94,6 +175,7 @@ print(output)
 
 # segment = output['segment']
 # npArray = tf.Session().run(segment).reshape(segment.shape[1], segment.shape[2])
+
 
 # npArray = 255*(npArray - np.min(npArray))/np.ptp(npArray).astype(int)
 # img = Image.fromarray(npArray)

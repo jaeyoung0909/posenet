@@ -1,5 +1,8 @@
+import math
+
 from multi_pose.util import clamp, getOffsetPoint, addVectors, getImageCoords 
 from multi_pose.keypoints import partIds, partNames, poseChain 
+
 
 
 
@@ -42,7 +45,6 @@ def decodePose(root, scores, offsets, outputStride, displacementsFwd, displaceme
     rootPart = root['part']
     rootScore = root['score']
     rootPoint = getImageCoords(rootPart, outputStride, offsets)
-
     instanceKeypoints[rootPart['id']] = {'score': rootScore, 'part' : partNames[rootPart['id']], 'position': rootPoint}
     
     for edge in range(numEdges - 1, -1, -1):
