@@ -3,7 +3,6 @@ import numpy as np
 from sklearn.preprocessing import normalize 
 from skimage.transform import resize
 from PIL import Image
-import csv 
 
 from MobileNet import Mobile
 from util import getInputTensorDimensions, getValidResolution, toResizedInputTensor, scalePoses
@@ -39,6 +38,7 @@ class PoseNet():
         maxDetections = 5, 
         scoreThreshold = 0.5, 
         nmsRadius = 20):
+
         [height, width] = getInputTensorDimensions(input)
         resizedHeight = getValidResolution(imageScaleFactor, width, outputStride)
         resizedWidth = getValidResolution(imageScaleFactor, width, outputStride)
@@ -50,6 +50,7 @@ class PoseNet():
         offsets = multipleRet['offsets']
         displacementFwd = multipleRet['displacementFwd']
         displacementBwd = multipleRet['displacementBwd']
+
         poses = decodeMultiplePoses(heatmapScores, offsets, displacementFwd, displacementBwd, outputStride, maxDetections, scoreThreshold, nmsRadius)
         
         scaleY = height / resizedHeight
@@ -141,8 +142,8 @@ inputImg = tf.constant(np.reshape(Img, (1,) + Img.shape))
 
 
 [output, img, heatmap] = posenet.estimateMultiplePoses(inputImg)
-print(img.shape)
-print(output)
+# print(img.shape)
+# print(output)
 heatmap = [
     {'x': 59.5228271484375, 'y': 46.82022273540497},
     {'x': 67.39776873588562, 'y': 56.60334300994873},
@@ -163,7 +164,7 @@ for i in heatmap:
     Img[y][x] = [0, 255, 255]
 img = Image.fromarray(Img)
 # img = Image.fromarray(drawPose(Img, output))
-img.show()
+# img.show()
 
 
 

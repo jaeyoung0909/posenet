@@ -9,6 +9,7 @@ def withinNmsRadiusOfCorrespondingPoint(poses, squaredNmsRadius, coord, keypoint
     y = coord['y']
     for keypoints in poses:
         correspondingKeypoint = keypoints['keypoints'][keypointId]['position']
+        
         if squaredDistance(y, x, correspondingKeypoint['y'], correspondingKeypoint['x']) <= squaredNmsRadius:
             return True 
     return False
@@ -34,8 +35,7 @@ def decodeMultiplePoses(heatmapScores, offsets, displacementsFwd, displacementsB
         root = queue.dequeue()
 
         rootImageCoords = getImageCoords(root['part'], outputStride, offsets)
-        print(rootImageCoords)
-
+    
         if withinNmsRadiusOfCorrespondingPoint(poses, squaredNmsRadius, rootImageCoords, root['part']['id']):
             continue 
         

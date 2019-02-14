@@ -11,15 +11,14 @@ def getImageCoords(part, outputStride, offsets):
     heatmapY = part['heatmapY']
     heatmapX = part['heatmapX']
     keypoint = part['id']
-    x = getOffsetPoint(heatmapY, heatmapX, keypoint, offsets)['x']
-    y = getOffsetPoint(heatmapY, heatmapX, keypoint, offsets)['y']
+    offsetPoint = getOffsetPoint(heatmapY, heatmapX, keypoint, offsets)
+    x = offsetPoint['x']
+    y = offsetPoint['y']
+
     return {'x': heatmapX * outputStride + x, 'y': heatmapY * outputStride + y}
 
 def fillArray(element, size):
-    result = []
-    for i in range(size):
-        result.append(element)
-    return result 
+    return [element] * size
 
 def clamp(a, min, max):
     if a < min:
