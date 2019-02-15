@@ -7,8 +7,8 @@ from multi_pose.util import getImageCoords, squaredDistance
 def withinNmsRadiusOfCorrespondingPoint(poses, squaredNmsRadius, coord, keypointId):
     x = coord['x']
     y = coord['y']
-    for keypoints in poses:
-        correspondingKeypoint = keypoints['keypoints'][keypointId]['position']
+    for pose in poses:
+        correspondingKeypoint = pose['keypoints'][keypointId]['position']
         
         if squaredDistance(y, x, correspondingKeypoint['y'], correspondingKeypoint['x']) <= squaredNmsRadius:
             return True 

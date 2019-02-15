@@ -3,6 +3,7 @@ import numpy as np
 from sklearn.preprocessing import normalize 
 from skimage.transform import resize
 from PIL import Image
+import cv2 
 
 from MobileNet import Mobile
 from util import getInputTensorDimensions, getValidResolution, toResizedInputTensor, scalePoses
@@ -27,7 +28,7 @@ class PoseNet():
                 'offsets':tf.reshape(offsets, (offsets.shape[1], offsets.shape[2],offsets.shape[3])), 
                 'displacementFwd' : tf.reshape(displacementFwd, (displacementFwd.shape[1], displacementFwd.shape[2],displacementFwd.shape[3])), 
                 'displacementBwd' : tf.reshape(displacementBwd, (displacementBwd.shape[1], displacementBwd.shape[2],displacementBwd.shape[3])),
-                'segment' : tf.reshape(segment, (segment.shape[0], segment.shape[1], segment.shape[2]))}
+                'segment' : tf.reshape(segment, (segment.shape[1], segment.shape[2]))}
 
     def estimateMultiplePoses(
         self,
@@ -129,6 +130,26 @@ def drawPose(npImg, output):
                     npImg[y + j][x + i] = color[keypoint]
     return npImg  
 
+def drawHeatmap(npImg, heatmap, offset, threshold = 0.5):
+
+    for i in range(heatmap.shape[2]):
+        for j in range(heatmap.shape[0]):
+            for k in range(heatmap.shape[1]):
+                if  heatmap[j][k][i] > 0.5:
+                    for dj in range(-1, 2, 1):
+                        for dk in range(-1, 2, 1):
+                            npImg[j * 16 + int(offset[j][k][i]) + dj][k * 16 + int(offset[j][k][i+17]) + dk] = [255,255,255]
+    return npImg
+
+def drawSegment(npImg, seg, threshold=-0.1):
+    print(seg.shape)
+    seg = 2 * (seg - np.min(seg))/np.ptp(seg) - 1
+    seg = resize(seg, (npImg.shape[0], npImg.shape[1]))
+    for i in range(seg.shape[0]):
+        for j in range(seg.shape[1]):
+            if seg[i][j] > -0.1:
+                npImg[i][j] = [255,255,255]
+    return npImg
 
 net = Mobile()
 posenet = PoseNet(net)
@@ -137,45 +158,31 @@ inputImg = Image.open('trump.jpeg')
 Img = np.array(inputImg)
 inputImg = tf.constant(np.reshape(Img, (1,) + Img.shape))
 
+output = tf.Session().run(posenet.predictForMultiPose(inputImg))
+heatmap = output['heatmapScores']
+offset = output['offsets']
+segment = output['segment']
+
+img = Image.fromarray(drawSegment(Img, segment))
+img.show()
 
 
-[output, img, heatmap] = posenet.estimateMultiplePoses(inputImg)
+
+# [output, img, heatmap] = posenet.estimateMultiplePoses(inputImg)
 # print(img.shape)
 # print(output)
-heatmap = [
-    {'x': 59.5228271484375, 'y': 46.82022273540497},
-    {'x': 67.39776873588562, 'y': 56.60334300994873},
-    {'x': 35.487648010253906, 'y': 97.75773429870605},
-    {'x': 65.34354972839355, 'y': 41.31705141067505},
-    {'x': 101.55524158477783, 'y': 87.48803615570068},
-    {'x': 78.0368971824646, 'y': 40.01420736312866},
-    {'x': 119.14924335479736, 'y': 129.39313542842865},
-    {'x': 44.64396142959595, 'y': 53.29807949066162}
-    ]
 
 
-for i in heatmap:
-    y = int(i['y'] * 1.4186046511627908)
-    x = int(i['x'] * 2.131782945736434)
-    if Img.shape[0] <= y or Img.shape[1] <= x:
-        continue
-    Img[y][x] = [0, 255, 255]
-img = Image.fromarray(Img)
+# heatmap = [
+#     {'x': 59.5228271484375, 'y': 46.82022273540497},
+#     {'x': 67.39776873588562, 'y': 56.60334300994873},
+#     {'x': 35.487648010253906, 'y': 97.75773429870605},
+#     {'x': 65.34354972839355, 'y': 41.31705141067505},
+#     {'x': 101.55524158477783, 'y': 87.48803615570068},
+#     {'x': 78.0368971824646, 'y': 40.01420736312866},
+#     {'x': 119.14924335479736, 'y': 129.39313542842865},
+#     {'x': 44.64396142959595, 'y': 53.29807949066162}
+#     ]
+
 # img = Image.fromarray(drawPose(Img, output))
-# img.show()
-
-
-
-# output = posenet.predictForMultiPose(inputImg)
-
-# heatmap = output['heatmapScores']
-# npArray = tf.Session().run(heatmap).reshape(heatmap.shape[1], heatmap.shape[2],heatmap.shape[3])
-# npArray = argmax(npArray)
-
-# segment = output['segment']
-# npArray = tf.Session().run(segment).reshape(segment.shape[1], segment.shape[2])
-
-
-# npArray = 255*(npArray - np.min(npArray))/np.ptp(npArray).astype(int)
-# img = Image.fromarray(npArray)
 # img.show()
