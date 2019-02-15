@@ -55,8 +55,6 @@ class PoseNet():
         
         scaleY = height / resizedHeight
         scaleX = width / resizedWidth
-        print(scaleY)
-        print(scaleX)
         return [scalePoses(poses, scaleY, scaleX), img.astype(int), heatmapScores]
     
 def argmax(npArray):
