@@ -1,6 +1,6 @@
 import tensorflow as tf
 import numpy as np
-from sklearn.preprocessing import normalize 
+from sklearn.preprocessing import normalize
 from skimage.transform import resize
 from PIL import Image
 
@@ -13,7 +13,7 @@ from drawer import drawPose, drawHeatmap, drawSegment
 class PoseNet():
     def __init__(self, mobileNet):
         self.mobileNet = mobileNet
-    
+
     def predictForMultiPose(self, input, outputStride = 16):
         mobileNetOutput = self.mobileNet.predict(input, outputStride)
         heatmaps = self.mobileNet.convToOutput(mobileNetOutput, 'heatmap_2')
@@ -23,41 +23,41 @@ class PoseNet():
         displacementFwd = self.mobileNet.convToOutput(mobileNetOutput, 'displacement_fwd_2')
         displacementBwd = self.mobileNet.convToOutput(mobileNetOutput, 'displacement_bwd_2')
         segment = self.mobileNet.convToOutput(mobileNetOutput, 'segment_2')
-        return {'heatmapScores': tf.reshape(heatmapScores,(heatmaps.shape[1], heatmaps.shape[2],heatmaps.shape[3])), 
+        return {'heatmapScores': tf.reshape(heatmapScores,(heatmaps.shape[1], heatmaps.shape[2],heatmaps.shape[3])),
                 'heatmapValues' : heatmapValues,
-                'offsets':tf.reshape(offsets, (offsets.shape[1], offsets.shape[2],offsets.shape[3])), 
-                'displacementFwd' : tf.reshape(displacementFwd, (displacementFwd.shape[1], displacementFwd.shape[2],displacementFwd.shape[3])), 
+                'offsets':tf.reshape(offsets, (offsets.shape[1], offsets.shape[2],offsets.shape[3])),
+                'displacementFwd' : tf.reshape(displacementFwd, (displacementFwd.shape[1], displacementFwd.shape[2],displacementFwd.shape[3])),
                 'displacementBwd' : tf.reshape(displacementBwd, (displacementBwd.shape[1], displacementBwd.shape[2],displacementBwd.shape[3])),
                 'segment' : tf.reshape(segment, (segment.shape[1], segment.shape[2]))}
 
     def estimateMultiplePoses(
         self,
-        input, 
-        imageScaleFactor = 0.5, 
-        flipHorizontal = False, 
-        outputStride = 16, 
-        maxDetections = 5, 
-        scoreThreshold = 0.5, 
+        input,
+        imageScaleFactor = 0.5,
+        flipHorizontal = False,
+        outputStride = 16,
+        maxDetections = 5,
+        scoreThreshold = 0.5,
         nmsRadius = 20):
 
         [height, width] = getInputTensorDimensions(input)
         resizedHeight = getValidResolution(imageScaleFactor, width, outputStride)
         resizedWidth = getValidResolution(imageScaleFactor, width, outputStride)
-        
+
         inputTensor = toResizedInputTensor(input, resizedHeight, resizedWidth, flipHorizontal)
         [multipleRet, img] = tf.Session().run([self.predictForMultiPose(inputTensor, outputStride), inputTensor])
-        
+
         heatmapScores = multipleRet['heatmapScores']
         offsets = multipleRet['offsets']
         displacementFwd = multipleRet['displacementFwd']
         displacementBwd = multipleRet['displacementBwd']
 
         poses = decodeMultiplePoses(heatmapScores, offsets, displacementFwd, displacementBwd, outputStride, maxDetections, scoreThreshold, nmsRadius)
-        
+
         scaleY = height / resizedHeight
         scaleX = width / resizedWidth
         return [scalePoses(poses, scaleY, scaleX), img.astype(int), heatmapScores]
-    
+
 def argmax(npArray):
     height = npArray.shape[0]
     weight = npArray.shape[1]
@@ -74,23 +74,47 @@ def argmax(npArray):
     ret = np.zeros((height, weight))
     for element in maxs:
         ret[element[0]][element[1]] = 1
-    
+
     return ret
 
 net = Mobile()
 posenet = PoseNet(net)
 
-inputImg = Image.open('trump.jpeg')
-Img = np.array(inputImg)
-inputImg = tf.constant(np.reshape(Img, (1,) + Img.shape))
+import cv2
 
-output = tf.Session().run(posenet.predictForMultiPose(inputImg))
-heatmap = output['heatmapScores']
-offset = output['offsets']
-segment = output['segment']
+cv2.namedWindow("preview")
+vc = cv2.VideoCapture(0)
 
-img = Image.fromarray(drawSegment(Img, segment))
-# img.show()
+if vc.isOpened():
+    rval, frame = vc.read()
+else:
+    rval = False
+
+while rval:
+    img = np.array(frame)
+    inputImg = tf.constant(np.reshape(img, (1,) + img.shape))
+    output = tf.Session().run(posenet.predictForMultiPose(inputImg))
+    heatmap = output['heatmapScores']
+    offset = output['offsets']
+    cv2.imshow("preview", drawHeatmap(img, heatmap, offset))
+    rval, frame = vc.read()
+    key = cv2.waitKey(20)
+    if key == 27:
+        break
+
+cv2.destroyWindow("preview")
+
+#
+#inputImg = Image.open('trump.jpeg')
+#Img = np.array(inputImg)
+#inputImg = tf.constant(np.reshape(Img, (1,) + Img.shape))
+#
+#output = tf.Session().run(posenet.predictForMultiPose(inputImg))
+#heatmap = output['heatmapScores']
+#offset = output['offsets']
+#segment = output['segment']
+#
+#img = Image.fromarray(drawHeatmap(Img, heatmap, offset))
 
 
 
