@@ -4,13 +4,13 @@ implementation of posenet
 
 Requirements
 ------------
-python 3.6.5
-numpy 1.14.3
-tensorflow 1.8.0
-cv2 3.4.1
-PIL 5.1.0
-skimage 0.13.1
-sklearn 0.19.1
+python 3.6.5  
+numpy 1.14.3  
+tensorflow 1.8.0  
+cv2 3.4.1  
+PIL 5.1.0  
+skimage 0.13.1  
+sklearn 0.19.1  
 
 
 File description
@@ -107,16 +107,16 @@ pose net 에서 heatmap 과 offset 을 이용하여 multi pose 를 복호화하�
 # posenetModel.py
 
 # drawer.py
-numpy array 형태로 저장된 이미지를 보기 좋게 도와줌.  
+numpy array 형태로 저장된 이미지를 보기 좋게 도와줌.    
 ## drawPose
-input : numpy array (image), estimateMultiplePoses 의 출력값 
-output :  key points 를 선으로 연결하고 입력 이미지를 투영한 numpy array 
+input : numpy array (image), estimateMultiplePoses 의 출력값   
+output :  key points 를 선으로 연결하고 입력 이미지를 투영한 numpy array   
 ## drawHeatmap 
-input : numpy array (image), predictForMultiPose 의 출력값에서 heatmapScores 값 , predictForMultiPose 의 출력값에서 offsets 값 
-output :  keypoints 와 입력 이미지를 투영한 numpy array
+input : numpy array (image), predictForMultiPose 의 출력값에서 heatmapScores   값 , predictForMultiPose 의 출력값에서 offsets 값   
+output :  keypoints 와 입력 이미지를 투영한 numpy array  
 ## drawSegment
-input : numpy array (image), predictForMultiPose 의 출력값에서 segment 값
-output : segmentation 과 입력 이미지를 투영한 numpy array
+input : numpy array (image), predictForMultiPose 의 출력값에서 segment 값  
+output : segmentation 과 입력 이미지를 투영한 numpy array  
 
 
 
