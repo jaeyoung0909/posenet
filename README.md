@@ -12,10 +12,20 @@ PIL 5.1.0
 skimage 0.13.1  
 sklearn 0.19.1  
 
+Demo
+----
+    python3 posenetModel.py 
 
+<object data="http://yoursite.com/the.pdf" type="application/pdf" width="700px" height="700px">
+    <embed src="http://yoursite.com/the.pdf">
+        <p>This browser does not support PDFs. Please download the PDF to view it: <a href="http://yoursite.com/the.pdf">Download PDF</a>.</p>
+    </embed>
+</object>
 File description
 ----------------
 각 파일의 목적과 내부에 있는 함수들의 설명을 작성함.  
+
+![alt text](Untitile 1.pdf)
 
 ## jsonLoader.py
 tf js 팀에서 학습시켜놓은 모델 weight 의 크롤링.  
@@ -66,7 +76,7 @@ mobile net class 를 구현한 파일
 mobile net 의 convolutional layers 의 정보를 list 형태로 출력. list 의 element 는 각 layer 의 block id, convolution type, stride, layer rate, output stride 을 포함.  
 input : 전역 변수로 설정한 contolution definition, output stride  
 output : convolution layers information list  
-###MobileNet
+### MobileNet
 Mobile net 을 구현한 class. ModelWeights 함수로 부터 구한 weights 를 이용하여 Mobile net 구조에 쓰인 convolution layers 를 완성시킴.   
 ### predict
 image 를 받아서 모바일 넷을 실행한 결과를 출력.  
@@ -103,6 +113,9 @@ pose net 에서 heatmap 과 offset 을 이용하여 multi pose 를 복호화하�
 ### util.py
 
 ## posenetModel.py
+### predictForMultiPose
+input : 
+### estimateMultiplePoses
 
 ### drawer.py
 numpy array 형태로 저장된 이미지를 보기 좋게 도와줌.    
