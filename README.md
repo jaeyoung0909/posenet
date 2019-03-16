@@ -25,7 +25,7 @@ File description
 ----------------
 각 파일의 목적과 내부에 있는 함수들의 설명을 작성함.  
 
-![alt text](structure.pdf)
+![alt text](structure.png)
 
 ## jsonLoader.py
 tf js 팀에서 학습시켜놓은 모델 weight 의 크롤링.  
