@@ -105,17 +105,7 @@ output : tf array (layer name 를 가진 depthwiseWeights array)
 ## multi_pose
 pose net 에서 heatmap 과 offset 을 이용하여 multi pose 를 복호화하기 위한 작업을 함. 결과적으로 쓰이는 함수는 decode_multiple_poses.py 에 있는 decodeMultiplePoses 이고 나머지 파일은 주로 decoder를 구현하기 위한 help function 과 class 가 있다.
 
-### build_part_with_score_queue.py
-### decode_multiple_poses.py
-### decode_pose.py
-### keypoints.py
-### max_heap.py
-### util.py
-
 ## posenetModel.py
-### predictForMultiPose
-input : 
-### estimateMultiplePoses
 
 ### drawer.py
 numpy array 형태로 저장된 이미지를 보기 좋게 도와줌.    
